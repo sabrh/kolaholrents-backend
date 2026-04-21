@@ -1,9 +1,7 @@
-import dotenv from 'dotenv';
-dotenv.config();
-import cors from 'cors';
-import express from 'express';
-import path from 'path';
-import mongoose from 'mongoose';
+require('dotenv').config();
+const cors = require('cors');
+const express = require('express');
+const mongoose = require('mongoose');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -38,16 +36,13 @@ const billSchema = new mongoose.Schema({
 const Tenant = mongoose.model('Tenant', tenantSchema);
 const Bill = mongoose.model('Bill', billSchema);
 
-// Auth Middleware (Simplified for this environment)
-// In a real app, use admin.auth().verifyIdToken(token)
-const authMiddleware = (req: any, res: any, next: any) => {
+// Auth Middleware
+const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     console.warn('Auth Middleware: No Authorization header');
     return res.status(401).json({ error: 'Unauthorized' });
   }
-  // For now, we'll just check if the header exists. 
-  // The frontend sends the token in the header.
   next();
 };
 
@@ -58,7 +53,7 @@ app.get('/api/tenants', async (req, res) => {
     res.json(tenants);
   } catch (err) {
     console.error('Fetch Tenants Error:', err);
-    res.status(500).json({ error: 'Failed to fetch tenants', details: err instanceof Error ? err.message : String(err) });
+    res.status(500).json({ error: 'Failed to fetch tenants', details: err.message });
   }
 });
 
@@ -78,7 +73,7 @@ app.post('/api/tenants/seed', authMiddleware, async (req, res) => {
     res.json({ message: 'Tenants seeded successfully' });
   } catch (err) {
     console.error('Seed Tenants Error:', err);
-    res.status(500).json({ error: 'Failed to seed tenants', details: err instanceof Error ? err.message : String(err) });
+    res.status(500).json({ error: 'Failed to seed tenants', details: err.message });
   }
 });
 
@@ -110,14 +105,12 @@ app.post('/api/bills', authMiddleware, async (req, res) => {
   }
 });
 
-// Vite Integration
+// Start server
 async function startServer() {
   try {
     const maskedUri = MONGODB_URI.replace(/:([^@]+)@/, ':****@');
     console.log('Connecting to MongoDB:', maskedUri);
-
     await mongoose.connect(MONGODB_URI);
-
     console.log('Connected to MongoDB');
   } catch (err) {
     console.error('MongoDB connection error:', err);
